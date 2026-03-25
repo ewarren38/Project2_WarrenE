@@ -17,9 +17,9 @@ class SparkDataCheck:
 
     # create an instance of our class while reading in a csv
     @classmethod
-    def from_csv(self, session, path):
+    def from_csv(self, spark, path):
         # SparkDataCheck = self
-        self.file = spark.read.load(path,
+        df = spark.read.load(path,
                      format="csv", 
                      sep=",", 
                      inferSchema="true", 
@@ -28,4 +28,42 @@ class SparkDataCheck:
         return self
 
     
-  
+    # create an instance of our class from a standard pandas dataframe
+    @classmethod
+    def from_pandas(self, spark, pd):
+        df = spark.createDataFrame(pd)
+        return self
+    
+    
+    def check_limits(self, column, lower = None, upper = None):
+        # first check that at least one bound was supplied
+        if (lower != None) | (upper != None):
+            
+            # then check that the column passed in numeric using pyspark.sql.types
+            if isintance(df.column.dtype, NumericType):
+
+                # If we have a lower and upper bound
+                if (lower != None) & (upper != None):
+                    
+                    codeBool = udf(lambda x: x.between(lower, upper, inclusive = 'both') if x != NULL else NULL)
+                    self.df.withColumn('inBounds', codeBool(col))
+
+                    self.df \
+                        .withColumn("inBounds", self.df.col.between(lower, upper, inclusive = 'both'))
+                # If we have only an upper bound
+                elif (lower == None) & (upper != None):
+                    self.df \
+                        .withColumn("inBounds", self.df.col.between(lower, upper, inclusive = 'right'))
+                # If we have only a lower bound
+                elif (lower != None) & (upper == None):                      
+                    self.df \
+                        .withColumn("inBounds", self.df.col.between(lower, upper, inclusive = 'left'))
+                else: #both are NULL
+    
+        else:              
+            print("Supplied column is not numeric type. No changes have been made to the dataframe.")
+    
+        # always return self
+        return self
+     
+       
