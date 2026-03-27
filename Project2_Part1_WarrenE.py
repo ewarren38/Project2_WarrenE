@@ -107,3 +107,43 @@ class SparkDataCheck:
         """
         self.df = self.df.withColumn('isMissing', F.isnull(self.df[column]))
         return self
+    
+    
+    # Summarization methods
+    # optional "grouping" variable
+    def get_minmax(self, column: str = None, group: str = None):
+        
+        if column != None:
+            if isinstance(self.df.schema[column].dataType, T.NumericType):
+                if group != None:
+                    sum_df = self.df \
+                        .groupBy(group) \
+                        .agg(F.min(column), F.max(column))
+                    p_df = sum_df.toPandas()
+                else:
+                    sum_df = self.df \
+                        .agg(F.min(column), F.max(column))
+                    p_df = sum_df.toPandas() # convert to a regular pandas dataframe
+                return p_df
+            else:
+                print("The supplied column is not numeric type")
+                return None
+        else:
+            # get a list of column names for our numeric columns
+            num_list = [col for col in self.df.columns if isinstance(self.df.schema[col].dataType, T.NumericType)]
+            
+            # initialize a pandas dataframe to store the min and max for each numeric column.
+            p_df = pd.DataFrame()
+            
+            if group != None:
+                for i in num_list:
+                    sum_df = self.df.groupBy(group).agg(F.min(i), F.max(i)).toPandas()
+                    p_df = pd.concat([p_df, sum_df], axis = 1)
+
+            else:
+                for i in num_list:
+                    sum_df = self.df.agg(F.min(i), F.max(i)).toPandas()
+                    p_df = pd.concat([p_df, sum_df], axis = 1)
+            return p_df
+    
+    #return a regular pandas dataframe (not PoS)
