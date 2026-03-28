@@ -1,5 +1,6 @@
-numvar,stringvar
-10,a
-2,b
-4,c
-18,d
+numvar,stringvar,nvar2,svar2
+10,a,2,apple
+2,b,30,apple
+4,c,33,cat
+18,d,1,cat
+3,a,15,dog
