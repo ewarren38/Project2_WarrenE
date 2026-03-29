@@ -24,7 +24,7 @@ class SparkDataCheck:
         df = spark.read.load(path,
                      format="csv", 
                      sep=",", 
-                     inferSchema="true", 
+                     inferSchema="true",
                      header="true")
         return self(df) # return our instance with this specific df as its DataFrame
     
